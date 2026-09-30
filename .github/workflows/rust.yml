@@ -11,12 +11,26 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Get Executable Name
+      run: |
+        # Extracts name from Cargo.toml and saves it to the global runner environment
+        NAME=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')
+        echo "EXE_NAME=$NAME" >> $GITHUB_ENV
+
     - name: Build
       run: cargo build --verbose
+
     - name: Run tests
       run: cargo test --verbose
+
+    # Example of using the name to upload the binary artifact
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.EXE_NAME }}-binary
+        path: target/debug/${{ env.EXE_NAME }}
